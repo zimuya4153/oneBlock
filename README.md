@@ -1,35 +1,30 @@
-# LeviLamina Mod Template
+# oneBlock - 单方块空岛维度
 
-A LeviLamina mod template
+此插件会创建一个名为`one_block`的维度，里面只会有一个无限随机生成的方块
 
-This mod is a template for developing LeviLamina mods.
+> 温馨提示：生成的方块会自动排除`无法破坏`(如基岩),`无翻译方块`(如:乱码方块)
 
-## Install
+## 如何前往此维度？
+- 打开聊天框，输入`/tp <玩家名> 0 1 0 one_block`
 
-Generate a new repository from this template.
+## 方块不生成怎么办？
+- 放置一个方块，再挖掉
 
-## Usage
+## 为什么生成不是循序渐进的？
+- 我懒，直接就随机从已注册的方块中随机抽一个放置
 
-Before using this mod template, make sure that you have installed XMake and a Minecraft Bedrock Server with LeviLamina.
+## 支持addon方块吗？
+- 支持
 
-1. Clone the new repository into a local folder.
+## 为什么不能设置重生点？
+- 因为不是主世界
 
-1. Change the mod name and the expected LeviLamina version in `xmake.lua`.
+## 安装方法
 
-1. Add your code.
-
-1. Run `xmake repo -u` in the root of the repository.
-
-1. Run `xmake` to build the mod.
-
-Now the build is complete at `bin/`.
-
-## Contributing
-
-Ask questions by creating an issue.
-
-PRs accepted.
-
-## License
-
-CC0-1.0 © LiteLDev
+- 手动安装
+  - 前往[Releases](https://github.com/zimuya4153/oneBlock/releases)下载最新版本的`oneBlock-windows-x64.zip`
+  - 解压`压缩包内的`文件夹到`./plugins/`目录
+- Lip 安装
+  - 输入命令`lip install -y github.com/zimuya4153/oneBlock`
+- ~~一条龙安装~~
+  - ~~去 Q 群，喊人，帮你安装~~
