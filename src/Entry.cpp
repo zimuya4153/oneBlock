@@ -13,6 +13,8 @@
 #include <mc/world/level/block/Block.h>
 #include <mc/world/level/block/registry/BlockTypeRegistry.h>
 #include <mc/world/level/dimension/VanillaDimensions.h>
+#include <mc/world/level/material/Material.h>
+#include <mc/world/level/block/utils/BedrockBlockNames.h>
 #include <mc/world/level/levelgen/GeneratorType.h>
 #include <memory>
 #include <more_dimensions/api/dimension/CustomDimensionManager.h>
@@ -32,25 +34,26 @@ void updateBlock() {
         auto& source = ll::service::getLevel()
                            ->getDimension(VanillaDimensions::fromString("one_block"))
                            ->getBlockSourceFromMainChunkSource();
-        if (source.getBlock(0, 0, 0).isAir()) {
-            logger.debug("检测方块为空气，开始放置");
-            auto block          = Block::tryGetFromRegistry("minecraft:air");
-            auto blockRegistrys = BlockTypeRegistry::mBlockComplexAliasPostSplitBlockNamesList;
-            int  count          = 0;
-            do {
-                try {
-                    if (count > 30) return logger.error("获取方块注册重试超过30次失败，已停止获取。");
-                    count++;
-                    auto& blockRegistry = blockRegistrys.at(randomInt(static_cast<int>(blockRegistrys.size())));
-                    block               = Block::tryGetFromRegistry(
-                        blockRegistry.at(randomInt(static_cast<int>(blockRegistry.size()))).get()
-                    );
-                } catch (...) {}
-            } while (!block.has_value() || block->isUnbreakable() || block->isAir()
-                     || block->buildDescriptionId() == getI18n().get(block->buildDescriptionId(), {}));
-            logger.debug("放置方块:{}", block->getTypeName());
-            source.setBlock(BlockPos(0, 0, 0), block, static_cast<int>(BlockUpdateFlag::All), nullptr, nullptr);
-        }
+        if (!source.getBlock(0, 0, 0).isAir()) return;
+        logger.debug("检测方块为空气，开始放置");
+        auto  block          = Block::tryGetFromRegistry(BedrockBlockNames::Air);
+        auto& blockRegistrys = BlockTypeRegistry::mBlockLookupMap;
+        int   count          = 0;
+        do {
+            try {
+                if (count > 30) return logger.error("获取方块注册重试超过30次失败，已停止获取。");
+                count++;
+                auto it = blockRegistrys.begin();
+                std::advance(it, randomInt(static_cast<int>(blockRegistrys.size()) - 1));
+                logger.debug("尝试获取方块:{}", std::string(it->first));
+                block = Block::tryGetFromRegistry(it->first);
+            } catch (...) {}
+        } while (!block.has_value() || block->isAir() || block->isEmpty() || block->isUnbreakable()
+                 || block->getMaterial().isType(MaterialType::Deny) || block->getMaterial().isType(MaterialType::Allow)
+                 || block->getMaterial().isType(MaterialType::Barrier)
+                 || block->buildDescriptionId() == getI18n().get(block->buildDescriptionId(), {}));
+        logger.debug("放置方块:{}", block->getTypeName());
+        source.setBlock(BlockPos(0, 0, 0), block.value(), static_cast<int>(BlockUpdateFlag::All), nullptr, nullptr);
     } catch (...) {}
 }
 
@@ -65,6 +68,7 @@ bool Entry::load() { return true; }
 bool Entry::enable() {
     more_dimensions::CustomDimensionManager::getInstance()
         .addDimension<more_dimensions::SimpleCustomDimension>("one_block", 0, GeneratorType::Void);
+    logger.debug("共发现注册 {} 个方块", std::to_string(BlockTypeRegistry::mBlockLookupMap.size()));
     return true;
 }
 
@@ -91,18 +95,5 @@ LL_AUTO_TYPE_INSTANCE_HOOK(
     Actor*                       blockChangeSource
 ) {
     origin(pos, layer, block, previousBlock, updateFlags, syncMsg, blockChangeSource);
-    updateBlock();
-}
-
-LL_TYPE_INSTANCE_HOOK(
-    PlayerChangeDimensionHook,
-    HookPriority::Normal,
-    Level,
-    &Level::requestPlayerChangeDimension,
-    void,
-    Player&                  player,
-    ChangeDimensionRequest&& changeRequest
-) {
-    origin(player, std::move(changeRequest));
     updateBlock();
 }
