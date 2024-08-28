@@ -19,6 +19,20 @@
 ## 为什么不能设置重生点？
 - 因为不是主世界
 
+## 如何重载配置文件？
+- 输入命令`/reload`
+
+## 配置文件
+```jsonc
+{
+    "version": 1, // 配置文件版本
+    "blacklist": [ // 黑名单列表
+        "minecraft:unknown", // 未知方块
+        "minecraft:border_block" // 边界方块
+    ]
+}
+```
+
 ## 安装方法
 
 - 手动安装
